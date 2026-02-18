@@ -1,0 +1,69 @@
+resource "aws_security_group" "august_batch_vpc_sg" {
+# name        = "august_batch_vpc_sg"
+#  description = "Allow TLS inbound traffic and all outbound traffic"
+  #vpc_id      = aws_vpc.august_batch_vpc.id
+
+  for_each = {
+    dev = {
+      port    = 22
+      protocol = "tcp"
+      cidr    = "0.0.0.0/0"
+    } 
+    prod = {
+      port    = 22
+      protocol = "tcp"
+      cidr    = "60.0.0.0/16"
+  }
+    qa = {
+      port    = 22
+      protocol = "tcp"
+      cidr    = "0.0.0.0/0"
+    }
+  }
+
+  name = "app-sg-${each.key}"
+  description = "Security group for ${each.key}"
+  vpc_id      = aws_vpc.august_batch_vpc.id
+   
+  ingress  {
+    description = "SSH"
+    from_port   = each.value.port
+    to_port     = each.value.port
+    protocol    = each.value.protocol
+    cidr_blocks = [each.value.cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = each.key
+  }
+}
+
+  
+#   ingress  {
+#     description = "SSH"
+#     from_port   = 22
+#     to_port     = 22
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+  
+#   ingress {
+#     description = "http"
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+
+#   tags = {
+#     Name = "august_batch_vpc_sg"
+#   }
+#}
+#aws_security_group.august_batch_vpc_sg.id
+

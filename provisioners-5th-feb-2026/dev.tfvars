@@ -1,0 +1,12 @@
+region = "ap-south-1"
+
+vpc_cidr = "90.0.0.0/16"
+instance_type = "t2.micro"
+vpc_name = "ladsoft_vpc_Prod"
+public_subnet_cidr = "90.0.1.0/24"
+public_subnet_name = "ladsoft_public_subnet_Prod"
+# private_subnet_cidr = "90.0.2.0/24"
+# private_subnet_name = "ladsoft_private_subnet_Prod"
+env = "Dev"
+az_zone1 = "ap-south-1a"
+# az_zone2 = "ap-south-1b"

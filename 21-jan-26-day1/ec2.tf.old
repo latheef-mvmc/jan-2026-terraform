@@ -1,0 +1,102 @@
+# resource "aws_instance" "webservers" {
+#   ami           = "ami-0ced6a024bb18ff2e"
+#   count = 2
+#   instance_type = "t2.micro"
+#   key_name = "august"
+#   subnet_id     = aws_subnet.pub_network1.id
+#   associate_public_ip_address = true
+#   vpc_security_group_ids = [aws_security_group.august_batch_vpc_sg.id]
+#   tags = {
+#     Name = "webserver-${count.index + 1}"
+    
+#   }
+# }
+
+# resource "aws_instance" "db-servers" {
+#   ami           = "ami-0ced6a024bb18ff2e"
+#   count = 2
+#   instance_type = "t2.micro"
+#   key_name = "august"
+#   subnet_id     = aws_subnet.pvt_subnet1.id
+#   vpc_security_group_ids = [aws_security_group.august_batch_vpc_sg.id]
+#   tags = {
+#     Name = "db-server-${count.index + 1}"
+#     # 0 1 => db-server-1, db-server-2
+#     #  0 + 1 = 1 , 1 + 1 = 2 
+#   }
+# }
+
+# resource "aws_instance" "webservers" {
+#   ami           = "ami-0ced6a024bb18ff2e"
+#   for_each = toset(["webserver1", "webserver2"])
+#   instance_type = "t2.micro"
+#   key_name = "august"
+#   subnet_id     = aws_subnet.pub_network1.id
+#   associate_public_ip_address = true
+#   vpc_security_group_ids = [aws_security_group.august_batch_vpc_sg.id]
+#   tags = {
+#     Name = each.key
+    
+#   }
+# }
+resource "aws_ebs_volume" "db_data_volume" {
+  for_each = {
+    dev  = {
+      size = 20
+    }
+    prod = {
+      size = 50
+    }
+    qa   = {
+      size = 30
+    }
+  }
+  availability_zone = "ap-south-1a"
+  size              = each.value.size
+  type              = "gp3"
+  encrypted         = true
+}
+
+resource "aws_instance" "webservers" {
+  ami           = "ami-0ced6a024bb18ff2e"
+  for_each = {
+      #key     value
+       dev = "t2.micro"
+       prod = "t3.micro"
+       qa = "t3.small"
+       
+  }
+  instance_type = each.value
+  key_name = "august"
+  subnet_id     = aws_subnet.pub_network1.id
+  associate_public_ip_address = true
+  #vpc_security_group_ids = [aws_security_group.august_batch_vpc_sg.id]
+ # vpc_security_group_ids = [aws_security_group.august_batch_vpc_sg[each.key].id]
+  vpc_security_group_ids = [aws_security_group.app_sg[each.key].id]
+  # user_data = <<-EOF
+  #             #!/bin/bash
+  #             echo "Hello, we are testing user data script" > /var/www/html/index.html
+  #             yum install -y httpd
+  #             systemctl start httpd
+  #             systemctl enable httpd
+  #             EOF
+  #user_data = each.value ? file("httpd.sh") : file("nginx.sh")
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("august.pem")
+    host        = self.public_ip
+    
+  }
+  provisioner "remote-exec" {
+    inline = [
+      "sudo yum update -y",
+      "sudo yum install httpd -y",
+      "sudo systemctl start httpd"
+    ]
+  }
+  tags = {
+    Name = each.key
+    
+  }
+}

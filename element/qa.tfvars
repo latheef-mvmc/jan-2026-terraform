@@ -1,0 +1,11 @@
+region = "ap-south-1"
+
+vpc_cidr = "70.0.0.0/16"
+vpc_name = "ladsoft_vpc_Qa"
+public_subnet_cidr = "70.0.1.0/24"
+public_subnet_name = "ladsoft_public_subnet_Qa"
+private_subnet_cidr = "70.0.2.0/24"
+private_subnet_name = "ladsoft_private_subnet_Qa"
+env = "QA"
+az_zone1 = "ap-south-1a"
+az_zone2 = "ap-south-1b"
